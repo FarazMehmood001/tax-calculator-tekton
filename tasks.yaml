@@ -3,23 +3,29 @@ kind: Task
 metadata:
   name: npm
 spec:
+  workspaces:
+    - name: source
   steps:
-    - name: npm-test
+    - name: install
       image: node:18
-      script: |
-        #!/bin/sh
-        npm install
-        npm test
+      workingDir: $(workspaces.source.path)
+      command:
+        - npm
+      args:
+        - install
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: jasmine
 spec:
+  workspaces:
+    - name: source
   steps:
-    - name: jasmine-test
+    - name: test
       image: node:18
-      script: |
-        #!/bin/sh
-        npm install
-        npx jasmine
+      workingDir: $(workspaces.source.path)
+      command:
+        - npx
+      args:
+        - jasmine
