@@ -3,22 +3,37 @@ kind: Pipeline
 metadata:
   name: tax-calculator-pipeline
 spec:
+  workspaces:
+    - name: shared-workspace
+  params:
+    - name: image-url
+      type: string
+      description: The URL of the image repository
   tasks:
     - name: npminstall
       taskRef:
         name: npm
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
     - name: tests
-      runAfter:
-        - npminstall
       taskRef:
         name: jasmine
+      runAfter:
+        - npminstall
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
     - name: build
+      taskRef:
+        name: buildah # This is the standard cluster task for building Docker images
       runAfter:
         - tests
-      taskSpec:
-        steps:
-          - name: build
-            image: node:18
-            script: |
-              #!/bin/sh
-              npm run build
+      params:
+        - name: IMAGE
+          value: "$(params.image-url)"
+      workspaces:
+        - name: source
+          workspace: shared-workspace
